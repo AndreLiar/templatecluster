@@ -1,0 +1,10 @@
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and update with your actual values
+
+# Git Repository Configuration
+git_repo_url  = "https://github.com/YOUR_ORG/YOUR_REPO"
+git_username  = "your-git-username"
+git_password  = "your-personal-access-token"
+
+# ArgoCD Configuration
+argocd_admin_password = "change-this-to-a-secure-password"
