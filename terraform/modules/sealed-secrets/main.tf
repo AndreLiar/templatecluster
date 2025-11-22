@@ -28,6 +28,27 @@ resource "helm_release" "sealed_secrets" {
     name  = "fullnameOverride"
     value = "sealed-secrets-controller"
   }
+
+  # Sealed Secrets Controller resource limits
+  set {
+    name  = "resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "resources.limits.cpu"
+    value = "200m"
+  }
+
+  set {
+    name  = "resources.limits.memory"
+    value = "128Mi"
+  }
 }
 
 output "kubeseal_install_cmd" {

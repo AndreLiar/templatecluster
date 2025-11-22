@@ -97,6 +97,132 @@ resource "helm_release" "prometheus_stack" {
     value = "false"
   }
 
+  # Grafana resource limits
+  set {
+    name  = "grafana.resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "grafana.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  set {
+    name  = "grafana.resources.limits.cpu"
+    value = "500m"
+  }
+
+  set {
+    name  = "grafana.resources.limits.memory"
+    value = "512Mi"
+  }
+
+  # Prometheus resource limits
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.cpu"
+    value = "200m"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.requests.memory"
+    value = "512Mi"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.limits.cpu"
+    value = "1000m"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.resources.limits.memory"
+    value = "2Gi"
+  }
+
+  # Alertmanager resource limits
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.limits.cpu"
+    value = "200m"
+  }
+
+  set {
+    name  = "alertmanager.alertmanagerSpec.resources.limits.memory"
+    value = "256Mi"
+  }
+
+  # Prometheus Operator resource limits
+  set {
+    name  = "prometheusOperator.resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.limits.cpu"
+    value = "500m"
+  }
+
+  set {
+    name  = "prometheusOperator.resources.limits.memory"
+    value = "512Mi"
+  }
+
+  # Node Exporter resource limits
+  set {
+    name  = "nodeExporter.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "nodeExporter.resources.requests.memory"
+    value = "32Mi"
+  }
+
+  set {
+    name  = "nodeExporter.resources.limits.cpu"
+    value = "200m"
+  }
+
+  set {
+    name  = "nodeExporter.resources.limits.memory"
+    value = "128Mi"
+  }
+
+  # Kube State Metrics resource limits
+  set {
+    name  = "kubeStateMetrics.resources.requests.cpu"
+    value = "50m"
+  }
+
+  set {
+    name  = "kubeStateMetrics.resources.requests.memory"
+    value = "64Mi"
+  }
+
+  set {
+    name  = "kubeStateMetrics.resources.limits.cpu"
+    value = "200m"
+  }
+
+  set {
+    name  = "kubeStateMetrics.resources.limits.memory"
+    value = "128Mi"
+  }
+
   timeout = 600
 }
 

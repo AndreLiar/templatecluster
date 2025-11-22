@@ -1,14 +1,7 @@
-variable "argocd_admin_password" {
-  description = "Admin password for ArgoCD"
-  type        = string
-  sensitive   = true
-  default     = "Nightagent2025@"
-}
-
 variable "git_repo_url" {
-  description = "Git repository URL"
+  description = "URL of the Git repository"
   type        = string
-  default     = "https://github.com/AndreLiar/KtaylBusiness"
+  default     = "https://github.com/AndreLiar/templatecluster.git"
 }
 
 variable "git_username" {

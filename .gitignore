@@ -10,6 +10,7 @@
 # Sensitive files
 **/terraform.tfvars
 !**/terraform.tfvars.example
+**/.credentials
 
 # Claude AI context (contains sensitive project info)
 CLAUDE.md

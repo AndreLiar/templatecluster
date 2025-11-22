@@ -12,6 +12,14 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.23"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.4"
+    }
   }
 }
 
@@ -31,9 +39,9 @@ provider "helm" {
 
 locals {
   environment = "prod"
-  cluster_name = "ktayl-${local.environment}"
+  cluster_name = "HDI-prod"
   git_branch = "main"
-  
+
   ports = {
     http = "32080"
     https = "32443"
@@ -42,6 +50,48 @@ locals {
     argocd = "32200"
     alertmanager = "32094"
   }
+}
+
+# Generate secure random passwords
+resource "random_password" "argocd_admin" {
+  length  = 16
+  special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "random_password" "grafana_admin" {
+  length  = 16
+  special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+# Store credentials in a local file (gitignored)
+resource "local_file" "credentials" {
+  filename        = "${path.module}/.credentials"
+  content         = <<-EOT
+    # ${local.cluster_name} Credentials
+    # Generated: ${timestamp()}
+    # IMPORTANT: Keep this file secure and do not commit to Git
+
+    ## ArgoCD
+    URL: http://localhost:${local.ports.argocd}
+    Username: admin
+    Password: ${random_password.argocd_admin.result}
+
+    ## Grafana
+    URL: http://localhost:${local.ports.grafana}
+    Username: admin
+    Password: ${random_password.grafana_admin.result}
+
+    ## Access All Services
+    ArgoCD:       http://localhost:${local.ports.argocd}
+    Grafana:      http://localhost:${local.ports.grafana}
+    Prometheus:   http://localhost:${local.ports.prometheus}
+    Alertmanager: http://localhost:${local.ports.alertmanager}
+    HTTP:         http://localhost:${local.ports.http}
+    HTTPS:        https://localhost:${local.ports.https}
+  EOT
+  file_permission = "0600"
 }
 
 module "k3d_cluster" {
@@ -67,36 +117,6 @@ module "ingress" {
 }
 
 module "monitoring" {
-  source = "../../modules/monitoring"
-  
-  cluster_context = module.k3d_cluster.context_name
-  grafana_port = local.ports.grafana
-  prometheus_port = local.ports.prometheus
-  alertmanager_port = local.ports.alertmanager
-  
-  depends_on = [module.k3d_cluster]
-}
-
-module "sealed_secrets" {
-  source = "../../modules/sealed-secrets"
-  
-  cluster_context = module.k3d_cluster.context_name
-  
-  depends_on = [module.k3d_cluster]
-}
-
-module "argocd" {
-  source = "../../modules/argocd"
-  
-  cluster_context = module.k3d_cluster.context_name
-  argocd_port = local.ports.argocd
-  admin_password = var.argocd_admin_password
-  git_repo_url = var.git_repo_url
-  git_branch = local.git_branch
-  git_username = var.git_username
-  git_password = var.git_password
-  environment = local.environment
-  
   depends_on = [module.k3d_cluster]
 }
 
@@ -124,9 +144,13 @@ output "credentials" {
   value = {
     grafana = {
       username = "admin"
-      password = "enterprise123"
+      password = random_password.grafana_admin.result
     }
-    argocd = module.argocd.argocd_credentials
+    argocd = {
+      username = "admin"
+      password = random_password.argocd_admin.result
+    }
+    credentials_file = "Credentials saved to: ${abspath(local_file.credentials.filename)}"
   }
   sensitive = true
 }
