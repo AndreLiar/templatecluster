@@ -44,9 +44,51 @@ Deploy complete Kubernetes infrastructure in minutes with ArgoCD, Prometheus, Gr
 
 **Each cluster includes:**
 - 1 Control Plane (server)
+- 2 Worker Nodes (agents)
+- Load Balancer
+- Complete isolation from other environments
 
-# 2. Deploy dev environment
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+Install these tools first:
+
+| Tool | Version | Windows | macOS | Linux |
+|------|---------|---------|-------|-------|
+| [Docker Desktop](https://www.docker.com/products/docker-desktop) | Latest | [Download](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe) | [Download](https://desktop.docker.com/mac/main/amd64/Docker.dmg) | [Install Guide](https://docs.docker.com/engine/install/) |
+| [kubectl](https://kubernetes.io/docs/tasks/tools/) | 1.28+ | `choco install kubernetes-cli` | `brew install kubectl` | [Install Guide](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) |
+| [k3d](https://k3d.io/) | 5.8+ | `choco install k3d` | `brew install k3d` | `wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh \| bash` |
+| [Terraform](https://www.terraform.io/) | 1.5+ | `choco install terraform` | `brew install terraform` | [Install Guide](https://developer.hashicorp.com/terraform/install) |
+
+**System Requirements:**
+- RAM: 8GB minimum (16GB recommended for all 3 clusters)
+- Disk: 10GB free space
+- CPU: 4+ cores recommended
+
+**Windows Users:** Install [Chocolatey](https://chocolatey.org/install) first for easy package management.
+
+### Verify Installation
+
+```bash
+docker --version && kubectl version --client && k3d version && terraform version
+```
+
+### Deploy in 3 Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/AndreLiar/templatecluster.git
+cd templatecluster
+
+# 2. Deploy dev environment (Standard profile - recommended)
 ./scripts/create-cluster.sh dev
+
+# OR choose a different profile:
+# ./scripts/create-cluster.sh dev minimal  # Lightweight (2-4GB RAM)
+# ./scripts/create-cluster.sh dev full     # Production-like (6-12GB RAM)
 
 # 3. Access your services
 # ArgoCD:  http://localhost:30200
@@ -60,6 +102,105 @@ cat terraform/environments/dev/.credentials
 
 **That's it!** You now have a fully functional Kubernetes cluster with monitoring and GitOps. 🎉
 
+**💡 Not sure which profile to use?** See [Which Profile Should I Use?](#-which-profile-should-i-use) below.
+
+---
+
+## 🎯 Which Profile Should I Use?
+
+Choose based on your needs and available resources:
+
+### 🚀 **Minimal Profile** - Quick Start & Learning
+
+**Perfect for:**
+- ✅ Learning Kubernetes basics
+- ✅ Quick demos and presentations
+- ✅ Limited resources (4GB RAM laptop)
+- ✅ Just need GitOps (ArgoCD) + Ingress
+
+**Deploy:**
+```bash
+./scripts/create-cluster.sh dev minimal
+```
+
+**What you get:**
+- k3d Kubernetes cluster
+- ArgoCD (GitOps automation)
+- NGINX Ingress (traffic management)
+
+**Resources:** ~2-4GB RAM, 2 CPUs, 5GB disk  
+**Deploy time:** ~3 minutes
+
+---
+
+### 💼 **Standard Profile** - Development & Testing ⭐ **RECOMMENDED**
+
+**Perfect for:**
+- ✅ Local application development
+- ✅ Testing and integration
+- ✅ Need monitoring and observability
+- ✅ Most common use case
+
+**Deploy:**
+```bash
+./scripts/create-cluster.sh dev
+# OR explicitly:
+./scripts/create-cluster.sh dev standard
+```
+
+**What you get:**
+- Everything in Minimal, PLUS:
+- Prometheus (metrics collection)
+- Grafana (dashboards and visualization)
+- Cert-Manager (TLS certificate automation)
+- Sealed Secrets (secret encryption)
+
+**Resources:** ~4-8GB RAM, 4 CPUs, 10GB disk  
+**Deploy time:** ~5 minutes
+
+---
+
+### 🏢 **Full Profile** - Production Simulation
+
+**Perfect for:**
+- ✅ Testing production configurations
+- ✅ Security validation and compliance
+- ✅ Network policy testing
+- ✅ Enterprise evaluation
+
+**Deploy:**
+```bash
+./scripts/create-cluster.sh dev full
+```
+
+**What you get:**
+- Everything in Standard, PLUS:
+- Network Policies (network security)
+- Production-like security hardening
+
+**Resources:** ~6-12GB RAM, 4 CPUs, 15GB disk  
+**Deploy time:** ~7 minutes
+
+---
+
+### 📊 Quick Comparison
+
+| Feature | Minimal | Standard ⭐ | Full |
+|---------|---------|----------|------|
+| **Use Case** | Learning, Demos | Development | Production Testing |
+| **RAM Required** | 2-4GB | 4-8GB | 6-12GB |
+| **Deploy Time** | 3 min | 5 min | 7 min |
+| **k3d Cluster** | ✅ | ✅ | ✅ |
+| **ArgoCD (GitOps)** | ✅ | ✅ | ✅ |
+| **NGINX Ingress** | ✅ | ✅ | ✅ |
+| **Prometheus** | ❌ | ✅ | ✅ |
+| **Grafana** | ❌ | ✅ | ✅ |
+| **Cert-Manager** | ❌ | ✅ | ✅ |
+| **Sealed Secrets** | ❌ | ✅ | ✅ |
+| **Network Policies** | ❌ | ❌ | ✅ |
+
+**💡 Recommendation:** Start with **Standard** (default) - it's the best balance of features and resources.
+
 ---
 
 ## 📖 Detailed Usage
@@ -68,41 +209,33 @@ cat terraform/environments/dev/.credentials
 
 ```bash
 # Development
-./scripts/create-cluster.sh dev
+./scripts/create-cluster.sh dev [minimal|standard|full]
 
 # Staging
-./scripts/create-cluster.sh staging
+./scripts/create-cluster.sh staging [minimal|standard|full]
 
 # Production
-./scripts/create-cluster.sh prod
+./scripts/create-cluster.sh prod [minimal|standard|full]
 ```
 
-### Deployment Profiles
+### Two Ways to Deploy
 
-Choose your deployment profile in `terraform/environments/{env}/main.tf`:
+**Method 1: Using Scripts (Recommended)**
+```bash
+./scripts/create-cluster.sh dev [minimal|standard|full]
+```
+✅ Easiest way - handles everything for you  
+✅ Recommended for most users
 
-```hcl
-# Minimal - Core components only
+**Method 2: Using Terraform Directly (Advanced)**
+```bash
+cd terraform/environments/dev
 terraform apply -var="deployment_profile=minimal"
-
-# Standard - Includes monitoring and secrets (default)
-terraform apply -var="deployment_profile=standard"
-
-# Full - Everything including network policies
-terraform apply -var="deployment_profile=full"
 ```
+✅ More control - for advanced users  
+✅ Useful for customization
 
-**Profile Comparison:**
-
-| Component | Minimal | Standard | Full |
-|-----------|---------|----------|------|
-| k3d Cluster | ✅ | ✅ | ✅ |
-| ArgoCD | ✅ | ✅ | ✅ |
-| NGINX Ingress | ✅ | ✅ | ✅ |
-| Prometheus + Grafana | ❌ | ✅ | ✅ |
-| Sealed Secrets | ❌ | ✅ | ✅ |
-| Cert-Manager | ❌ | ✅ | ✅ |
-| Network Policies | ❌ | ❌ | ✅ |
+**💡 Recommendation:** Use Method 1 (scripts) unless you need to customize Terraform configurations.
 
 ### Test Cluster Health
 
@@ -358,6 +491,10 @@ terraform apply
 
 ## 📚 Documentation
 
+- [FAQ](docs/FAQ.md) - 40+ frequently asked questions
+- [Enterprise Use Cases](docs/ENTERPRISE_USE_CASES.md) - Real-world scenarios
+- [Enterprise Roles](docs/ENTERPRISE_ROLES.md) - Team structure and responsibilities
+- [Helm vs YAML](docs/HELM_VS_YAML.md) - Package management explained
 - [k3d Documentation](https://k3d.io/)
 - [Terraform Documentation](https://www.terraform.io/docs)
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
@@ -380,7 +517,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -397,7 +534,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 💬 Support
 
-- 📧 Email: [your-email@example.com]
+- 📧 Email: support@example.com
 - 🐛 Issues: [GitHub Issues](https://github.com/AndreLiar/templatecluster/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/AndreLiar/templatecluster/discussions)
 
